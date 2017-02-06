@@ -1,0 +1,138 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+
+<dom-module id="camera-capture">
+    <style>
+        .video-container{
+            position: relative;
+            display: inline-block;
+        }
+        .error {
+            margin: auto;
+        }
+        paper-fab.bottom-right {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            z-index: 1;
+        }
+        paper-fab.blue {
+            --paper-fab-background: var(--paper-light-blue-500);
+            --paper-fab-keyboard-focus-background: var(--paper-light-blue-900);
+        }
+    </style>
+
+    <template>
+        <div class="video-container">
+            <h5>[[devices]]</h5>
+            <template is="dom-if" if="[[ !enabled ]]">
+                <h4 class="error">[[ errorMessage ]]</h4>
+            </template>
+
+            <video id="video" autoplay></video>
+            <canvas id="photo" style="display:none;"></canvas>
+            <paper-fab
+                    mini
+                    on-tap="takePicture"
+                    icon="camera-enhance"
+                    class="blue bottom-right"
+                    title="Take Photo"
+                    disabled="[[ !enabled ]]"
+            ></paper-fab>
+        </div>
+    </template>
+</dom-module>
+
+<script>
+	Polymer({
+		is: 'camera-capture',
+		properties: {
+			lastImage: {
+				type: String,
+                value: null,
+                notify: true
+            },
+            maxWidth: {
+				type: Number,
+                value: null
+            },
+            maxHeight: {
+				type: Number,
+                value: null
+            },
+            format: {
+			    type: String,
+                value: 'jpeg'
+            },
+            enabled: {
+			    type: Boolean,
+                value: false,
+                notify: true
+            },
+            errorMessage: {
+			    type: String,
+                value: "",
+                notify: true
+            },
+            devices: {
+				type: String,
+                value: "Devices"
+            }
+        },
+        attached: function () {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+            	navigator.mediaDevices.enumerateDevices()
+                    .then(function(MediaDeviceInfo) {this.devices = MediaDeviceInfo.toString()});
+                navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: {ideal: this.maxWidth},
+                        height: {ideal: this.maxHeight}
+                    }
+                }).then(this.onSuccess.bind(this)).catch(this.onError.bind(this));
+            }else{
+                this.onError({name: "Video not supported by browser."})
+            }
+        },
+        onSuccess: function(mediaStream) {
+		    this.enabled = true;
+            let video = this.$.video;
+            video.src = window.URL.createObjectURL(mediaStream);
+        },
+        onError: function (error) {
+		    console.log('Video error', error);
+            this.enabled = false;
+            this.errorMessage = error.name;
+        },
+        takePicture: function (event) {
+            if (this.enabled){
+                let canvas = this.$.photo;
+                let canvasCtx = canvas.getContext('2d');
+                let video = this.$.video;
+
+                // Scale if larger than maxWidth or maxHeight
+                let scaleFactors = [];
+                if (this.maxWidth){
+                    scaleFactors.push(this.maxWidth / video.videoWidth);
+                }
+                if (this.maxHeight){
+                    scaleFactors.push(this.maxHeight / video.videoHeight);
+                }
+
+                let scaleFactor = Math.min(...scaleFactors);
+                if (scaleFactor < 1){
+                    let width = Math.floor(video.videoWidth * scaleFactor);
+                    let height = Math.floor(video.videoHeight * scaleFactor);
+                    canvas.width = width;
+                    canvas.height = height;
+                    canvasCtx.drawImage(this.$.video, 0, 0, width, height);
+                }else{
+                    canvasCtx.drawImage(this.$.video, 0, 0);
+                }
+
+                this.lastImage = canvas.toDataURL('image/' + this.format);
+            }
+        }
+	});
+</script>

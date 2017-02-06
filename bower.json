@@ -1,0 +1,33 @@
+{
+  "name": "camera-capture",
+  "authors": [
+    "Ty Brockhoeft"
+  ],
+  "keywords": [
+    "web-components",
+    "web-component",
+    "polymer",
+    "paper",
+    "camera"
+  ],
+  "description": "Polymer element for taking pictures using getUserMedia().",
+  "main": "camera-capture.html",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/tjb346/camera-capture.git"
+  },
+  "license": "MIT",
+  "homepage": "www.github.com/tjb346/camera-capture",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.1.0",
+    "iron-icons": "PolymerElements/iron-icons#^1.2.0",
+    "paper-fab": "PolymerElements/paper-fab#^1.2.1"
+  },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
